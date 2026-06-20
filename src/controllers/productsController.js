@@ -98,20 +98,31 @@ exports.uploadPhoto = async (req, res) => {
   const { id } = req.params;
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    
     let photoUrl;
-    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_CLOUD_NAME !== 'YOUR_CLOUD_NAME') {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+    
+    if (cloudName && apiKey && apiSecret) {
+      const cloudinary = require('cloudinary').v2;
+      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
       const result = await cloudinary.uploader.upload(req.file.path, { folder: 'packkart/products' });
       photoUrl = result.secure_url;
+      console.log('Uploaded to Cloudinary:', photoUrl);
     } else {
-      photoUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+      photoUrl = `${backendUrl}/uploads/${req.file.filename}`;
     }
+    
     const product = await pool.query('SELECT photos FROM products WHERE id = $1', [id]);
     const photos = product.rows[0].photos || [];
     photos.push(photoUrl);
     await pool.query('UPDATE products SET photos=$1, updated_at=NOW() WHERE id=$2', [JSON.stringify(photos), id]);
     res.json({ success: true, photoUrl, photos });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Photo upload failed' });
+    console.error('Photo upload error:', error.message);
+    res.status(500).json({ success: false, message: 'Photo upload failed: ' + error.message });
   }
 };
 
