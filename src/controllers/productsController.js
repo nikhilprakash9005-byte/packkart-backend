@@ -100,9 +100,9 @@ exports.uploadPhoto = async (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
     
     let photoUrl;
-    const cloudName = process.env.dosmoqqia;
-    const apiKey = process.env.178362666259632;
-    const apiSecret = process.env.roYHgy7xrgB28D9xxp7r-q0NRAM;
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
     
     if (cloudName && apiKey && apiSecret) {
       const cloudinary = require('cloudinary').v2;
