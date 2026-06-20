@@ -1,0 +1,10 @@
+const express = require('express');
+const router = express.Router();
+const c = require('../controllers/ordersController');
+const { authenticateUser, authenticateStaff } = require('../middleware/auth');
+router.post('/', authenticateUser, c.placeOrder);
+router.get('/my', authenticateUser, c.getMyOrders);
+router.get('/all', authenticateStaff, c.getAllOrders);
+router.put('/:id/status', authenticateStaff, c.updateOrderStatus);
+router.put('/:id/assign', authenticateStaff, c.assignDeliveryBoy);
+module.exports = router;
